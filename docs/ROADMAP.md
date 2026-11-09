@@ -18,6 +18,13 @@
 - [ ] Exercise the Docker sandbox and compose file in CI
 - [ ] Unit tests for the UI's `src/lib` modules
 
+## Known gaps (found in review)
+
+- [ ] Cap the amount of captured process output; a test that prints heavily is only limited by the timeout today
+- [ ] Windows: no memory or CPU limits and no process-tree kill; use the Docker sandbox there
+- [ ] Rate limiting and authentication if the API is ever reachable by anyone but the local user
+- [ ] Verify refactors under more than one Python version
+
 ## Later
 
 - [ ] Multi-file refactoring with project-level context

@@ -96,7 +96,7 @@ sequenceDiagram
 | API | Intended for localhost. CORS limited to configured origins. No authentication. |
 | Secrets | Read from environment variables; none in the repository |
 
-A test suite that exits with code 0 by calling `os._exit(0)` would pass verification. The engine trusts the supplied tests; see [ADR 0001](adr/0001-verify-by-existing-tests.md).
+A run counts as passed only when pytest exits 0 **and** reports at least one passed test, so an empty suite, an all-skipped suite, or a module that ends the process early cannot verify a candidate. Code that deliberately prints a fake pytest summary is not detected: the engine trusts the supplied tests. See [ADR 0001](adr/0001-verify-by-existing-tests.md) and the [threat model](THREAT_MODEL.md).
 
 ## Browser workbench
 

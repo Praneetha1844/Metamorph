@@ -21,7 +21,7 @@ Accept a candidate only if the **original, unmodified tests** pass against it. B
 
 - The guarantee is exactly "the supplied tests still pass". Untested behaviour can change silently. The README, the report and the UI all state this.
 - Weak or missing tests give weak or no verification, which is why an empty suite is treated as a failure.
-- The tests run in the same interpreter process as the candidate, so a candidate or test file could fake success (for example by exiting early with code 0). The engine does not defend against a hostile test suite; that is out of scope for a tool whose user supplies the tests.
+- The tests run in the same interpreter process as the candidate. A run passes only on exit code 0 with at least one test reported as passed, which stops accidental false passes such as an early process exit. The engine does not defend against deliberately hostile code that fakes the pytest summary; that is out of scope for a tool whose user supplies the tests and reviews the diff.
 - A model could special-case the tested inputs. Reviewing the diff remains the user's job.
 - Static metrics (radon) are reported alongside, but they never decide acceptance.
 

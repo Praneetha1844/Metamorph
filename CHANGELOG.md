@@ -4,6 +4,21 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+- `METAMORPH_MAX_CONCURRENT_RUNS`: bound simultaneous runs; extra requests receive HTTP 429.
+- Documentation: index, API reference, configuration reference, threat model, development guide, glossary and `SECURITY.md`.
+- Container healthcheck and `.dockerignore` for the engine image; project URLs in package metadata.
+
+### Changed
+- A run now passes only when pytest exits 0 and at least one test passed, so an early process exit or an all-skipped suite no longer verifies a candidate.
+- Child process output is decoded as UTF-8.
+- `METAMORPH_PROVIDER=openai` without `METAMORPH_OPENAI_MODEL` is a configuration error.
+- The `127.0.0.1` development origin is allowed by default.
+- Module names that would shadow pytest's dependencies are rejected; empty fenced blocks in model replies are skipped.
+- The evaluation CLI stops with exit code 1 when the sandbox is unavailable.
+
 ## [0.2.0]
 
 ### Added

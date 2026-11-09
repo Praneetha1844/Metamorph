@@ -39,7 +39,7 @@ flowchart LR
   R --> API --> UI
 ```
 
-Sequence diagram, trust boundaries and design notes: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). Decisions: [docs/adr](docs/adr).
+Sequence diagram, trust boundaries and design notes: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). Decisions: [docs/adr](docs/adr). All documentation is indexed in [docs/index.md](docs/index.md).
 
 ## Project structure
 
@@ -112,8 +112,9 @@ Verdicts: `accepted`, `rejected`, `baseline_failed`, `provider_error`.
 | `METAMORPH_MAX_ATTEMPTS` | Attempts per run | `3` |
 | `METAMORPH_TEST_TIMEOUT_S` | Seconds per test run | `10` |
 | `METAMORPH_MEMORY_MB` | Memory cap per test run (POSIX) | `512` |
+| `METAMORPH_MAX_CONCURRENT_RUNS` | Simultaneous runs; extra requests get HTTP 429 | `2` |
 | `METAMORPH_SANDBOX` | `subprocess` or `docker` | `subprocess` |
-| `METAMORPH_CORS_ORIGINS` | Allowed browser origins | `http://localhost:5173` |
+| `METAMORPH_CORS_ORIGINS` | Allowed browser origins | `http://localhost:5173,http://127.0.0.1:5173` |
 | `VITE_ENGINE_URL` | Engine URL used by the UI | `http://127.0.0.1:8000` |
 
 The UI also reads `VITE_JUDGE0_*` and `VITE_OLLAMA_*` for the original features. `VITE_*` values are bundled into the browser build, so use throwaway keys there. No credentials are stored in this repository.
@@ -130,12 +131,12 @@ The bundled cases are short samples written by hand for this project. No results
 
 ## Security
 
-The engine **executes code it is sent**. The default sandbox is a child process with a timeout and POSIX memory, CPU and file-size limits. That contains accidents, not attackers: the child runs as the same user and can use the network. Run the engine on localhost only, or inside a container, or enable the Docker sandbox (network-less, read-only, capped). Details: [ADR 0003](docs/adr/0003-sandboxing-tradeoffs.md).
+The engine **executes code it is sent**. The default sandbox is a child process with a timeout and POSIX memory, CPU and file-size limits. That contains accidents, not attackers: the child runs as the same user and can use the network. Run the engine on localhost only, or inside a container, or enable the Docker sandbox (network-less, read-only, capped). Details: [ADR 0003](docs/adr/0003-sandboxing-tradeoffs.md), [threat model](docs/THREAT_MODEL.md) and [SECURITY.md](SECURITY.md).
 
 ## Limitations
 
 - **Python only** for verified refactoring. Other languages run in the browser or Judge0 but are not verified.
-- Verification is only as strong as the supplied tests, and cannot detect behaviour changes the tests miss. A model could also special-case the tests; the engine does not detect that.
+- Verification is only as strong as the supplied tests, and cannot detect behaviour changes the tests miss. A model could also special-case the tests; the engine does not detect that. A run counts as passed only when at least one test passed, but code that deliberately fakes the pytest summary is not detected.
 - Static metrics are heuristics for readability, not proof of quality.
 - The subprocess sandbox is not a security boundary.
 - Memory limits (`RLIMIT_AS`) are applied on POSIX only and may not be enforced on every platform.
