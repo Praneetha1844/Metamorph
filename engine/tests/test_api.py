@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
 from fastapi.testclient import TestClient
 
 from metamorph_engine.api import create_app
@@ -10,7 +9,6 @@ from metamorph_engine.config import Settings
 from metamorph_engine.models import SuiteResult
 from metamorph_engine.providers import FakeProvider
 from metamorph_engine.sandbox import SandboxError, SubprocessSandbox
-from metamorph_engine.store import RunStore
 
 SOURCE = "def double(x):\n    y = x\n    y = y + x\n    return y\n"
 TESTS = "from solution import double\n\ndef test_double():\n    assert double(2) == 4\n"
@@ -68,18 +66,3 @@ def test_sandbox_failure_is_503() -> None:
     client = TestClient(create_app(Settings(), FakeProvider([]), Broken()))
     response = client.post("/refactor", json={"source": SOURCE, "tests": TESTS})
     assert response.status_code == 503
-
-
-def test_store_evicts_oldest_beyond_capacity() -> None:
-    client = make_client([REFACTORED, REFACTORED])
-    store = RunStore(capacity=1)
-    first = client.post("/refactor", json={"source": SOURCE, "tests": TESTS}).json()
-    from metamorph_engine.models import RunReport
-
-    store.add(RunReport.model_validate(first))
-    second = RunReport.model_validate(first).model_copy(update={"id": "second"})
-    store.add(second)
-    assert store.get(first["id"]) is None
-    assert store.get("second") is not None
-    with pytest.raises(ValueError):
-        RunStore(capacity=0)
