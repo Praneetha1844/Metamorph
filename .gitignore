@@ -24,3 +24,14 @@ dist-ssr
 *.sw?
 
 !.env.example
+
+# Python (engine)
+__pycache__/
+*.py[cod]
+.venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+*.egg-info/
+engine/results*.csv
+.env

@@ -1,0 +1,54 @@
+[build-system]
+requires = ["hatchling>=1.24"]
+build-backend = "hatchling.build"
+
+[project]
+name = "metamorph-engine"
+version = "0.2.0"
+description = "Refactor-and-verify engine: ask an LLM for a refactor, accept it only if the original tests still pass."
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Praneetha Potharaju" }]
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115,<1",
+    "uvicorn>=0.30,<1",
+    "pydantic>=2.7,<3",
+    "httpx>=0.27,<1",
+    "radon>=6.0,<7",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.2,<9",
+    "ruff>=0.6",
+    "mypy>=1.11",
+]
+
+[project.scripts]
+metamorph-eval = "metamorph_engine.evaluation:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/metamorph_engine"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests", "eval"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "C4", "RUF"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+files = ["src", "tests"]
+
+[[tool.mypy.overrides]]
+module = ["radon.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra"
