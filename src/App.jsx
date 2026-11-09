@@ -3,6 +3,8 @@ import { Editor } from "@monaco-editor/react";
 import { runJavaScript } from "./lib/runJs";
 import { runRemote } from "./lib/judge0";
 import { suggestRefactor } from "./lib/ollama";
+import { verifyRefactor } from "./lib/engine";
+import VerifiedResult from "./components/VerifiedResult";
 
 const LANGUAGES = [
   { value: "javascript", label: "JavaScript" },
@@ -17,6 +19,10 @@ export default function App() {
   const [output, setOutput] = useState("");
   const [suggestion, setSuggestion] = useState("");
   const [busy, setBusy] = useState(false);
+  const [tests, setTests] = useState("");
+  const [moduleName, setModuleName] = useState("solution");
+  const [report, setReport] = useState(null);
+  const [engineError, setEngineError] = useState("");
 
   const run = async () => {
     setBusy(true);
@@ -29,6 +35,18 @@ export default function App() {
     setSuggestion(await suggestRefactor(language, code));
     setBusy(false);
   };
+
+  const verify = async () => {
+    setBusy(true);
+    setEngineError("");
+    setReport(null);
+    const result = await verifyRefactor({ source: code, tests, moduleName });
+    if (result.error) setEngineError(result.error);
+    else setReport(result.report);
+    setBusy(false);
+  };
+
+  const canVerify = language === "python" && tests.trim() !== "" && moduleName.trim() !== "";
 
   return (
     <div className="min-h-screen bg-[#080715] px-4 py-10 text-white">
@@ -78,6 +96,45 @@ export default function App() {
             Suggest refactor
           </button>
         </div>
+
+        {language === "python" && (
+          <section className="mt-4 rounded-lg bg-gray-900 p-4">
+            <h2 className="text-lg font-semibold">Verify with tests (Python)</h2>
+            <p className="mt-1 text-sm text-gray-400">
+              Paste pytest tests that import your code as the module name below. A refactor is
+              accepted only if these tests still pass.
+            </p>
+            <label htmlFor="module-name" className="mt-3 block text-sm">Module name</label>
+            <input
+              id="module-name"
+              className="mt-1 rounded border bg-gray-700 p-2"
+              value={moduleName}
+              onChange={(e) => setModuleName(e.target.value)}
+            />
+            <label htmlFor="tests" className="mt-3 block text-sm">Tests</label>
+            <textarea
+              id="tests"
+              rows={8}
+              className="mt-1 w-full rounded border bg-gray-700 p-2 font-mono text-sm"
+              placeholder={"from solution import my_function
+
+def test_my_function():
+    assert my_function(1) == 2"}
+              value={tests}
+              onChange={(e) => setTests(e.target.value)}
+            />
+            <button
+              className="mt-3 rounded bg-purple-600 px-6 py-2 font-semibold hover:bg-purple-800 disabled:opacity-50"
+              onClick={verify}
+              disabled={busy || !canVerify}
+            >
+              Verify refactor
+            </button>
+            {engineError && <p role="alert" className="mt-3 text-red-400">{engineError}</p>}
+          </section>
+        )}
+
+        {report && <VerifiedResult report={report} />}
 
         <section className="mt-4 rounded-lg bg-black p-4" aria-live="polite">
           <h2 className="text-lg font-semibold">Output</h2>
