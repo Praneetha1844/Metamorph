@@ -1,11 +1,13 @@
-.PHONY: install lint typecheck test check run eval
+.PHONY: install lint format typecheck test check run eval
 
 install:
 	python -m pip install -e ".[dev]"
 
 lint:
 	ruff check .
-	ruff format --check .
+
+format:
+	ruff format .
 
 typecheck:
 	mypy

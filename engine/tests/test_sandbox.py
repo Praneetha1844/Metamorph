@@ -43,7 +43,8 @@ def test_empty_suite_never_counts_as_passing() -> None:
 
 
 def test_import_error_in_source_fails() -> None:
-    result = SubprocessSandbox(timeout_s=30).run_tests("import nonexistent_pkg_xyz\n", GOOD_TESTS, "solution")
+    broken = "import nonexistent_pkg_xyz\n"
+    result = SubprocessSandbox(timeout_s=30).run_tests(broken, GOOD_TESTS, "solution")
     assert not result.passed
 
 
