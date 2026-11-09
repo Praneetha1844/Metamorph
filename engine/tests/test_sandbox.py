@@ -42,6 +42,27 @@ def test_empty_suite_never_counts_as_passing() -> None:
     assert not result.passed
 
 
+def test_early_exit_with_code_zero_is_not_a_pass() -> None:
+    quitter = "import os\nos._exit(0)\n\ndef add(a, b):\n    return a + b\n"
+    result = SubprocessSandbox(timeout_s=30).run_tests(quitter, GOOD_TESTS, "solution")
+    assert result.exit_code == 0
+    assert result.passed_count == 0
+    assert not result.passed
+
+
+def test_all_skipped_suite_is_not_a_pass() -> None:
+    skipped = "import pytest\n\n@pytest.mark.skip\ndef test_x():\n    pass\n"
+    result = SubprocessSandbox(timeout_s=30).run_tests(SOURCE, skipped, "solution")
+    assert not result.passed
+
+
+def test_non_ascii_output_is_decoded() -> None:
+    tests = "def test_unicode():\n    assert 'caf\u00e9' == 'cafe'\n"
+    result = SubprocessSandbox(timeout_s=30).run_tests(SOURCE, tests, "solution")
+    assert not result.passed
+    assert "caf" in result.output
+
+
 def test_import_error_in_source_fails() -> None:
     broken = "import nonexistent_pkg_xyz\n"
     result = SubprocessSandbox(timeout_s=30).run_tests(broken, GOOD_TESTS, "solution")
@@ -60,6 +81,11 @@ def test_build_result_parses_counts_and_exit_code() -> None:
         exit_code=1, output="2 failed, 3 passed in 0.1s", timed_out=False, duration_s=0.1
     )
     assert (result.passed_count, result.failed_count, result.passed) == (3, 2, False)
+
+
+def test_build_result_requires_a_passing_test() -> None:
+    assert not build_result(exit_code=0, output="", timed_out=False, duration_s=0).passed
+    assert build_result(exit_code=0, output="3 passed in 0.1s", timed_out=False, duration_s=0).passed
 
 
 def test_tail_keeps_the_end() -> None:

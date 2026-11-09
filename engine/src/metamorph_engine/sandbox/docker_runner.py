@@ -64,6 +64,8 @@ class DockerSandbox:
                     command,
                     capture_output=True,
                     text=True,
+                    encoding="utf-8",
+                    errors="replace",
                     timeout=self._timeout_s,
                     check=False,
                 )

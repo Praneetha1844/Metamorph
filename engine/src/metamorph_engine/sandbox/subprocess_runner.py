@@ -74,6 +74,7 @@ class SubprocessSandbox:
             "PATH": os.environ.get("PATH", ""),
             "PYTHONDONTWRITEBYTECODE": "1",
             "PYTHONHASHSEED": "0",
+            "PYTHONUTF8": "1",  # stable output encoding regardless of the host locale
             "HOME": str(root),
         }
         if "SYSTEMROOT" in os.environ:  # required for Python to start on Windows
@@ -87,6 +88,8 @@ class SubprocessSandbox:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 text=True,
+                encoding="utf-8",
+                errors="replace",
                 start_new_session=os.name == "posix",
             )
         except OSError as exc:

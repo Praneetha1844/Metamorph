@@ -44,8 +44,11 @@ def build_result(
 ) -> SuiteResult:
     """Turn raw process results into a `SuiteResult`.
 
-    A run passes only on exit code 0. pytest exits 5 when no tests were collected, which is
-    deliberately treated as a failure so an empty suite can never verify a refactor.
+    A run passes only on exit code 0 **and** at least one test reported as passed. pytest exits 5
+    when no tests were collected, and a module that ends the process early (for example with
+    `os._exit(0)` at import time) exits 0 without running anything. Both are treated as failures
+    so an empty or short-circuited run can never verify a refactor. This guards against
+    accidents; code that deliberately prints a fake summary is outside what it can detect.
     """
     passed_count = failed_count = 0
     for number, label in _COUNT.findall(output):
@@ -54,7 +57,7 @@ def build_result(
         else:
             failed_count += int(number)
     return SuiteResult(
-        passed=exit_code == 0 and not timed_out,
+        passed=exit_code == 0 and not timed_out and passed_count > 0,
         exit_code=exit_code,
         timed_out=timed_out,
         passed_count=passed_count,
