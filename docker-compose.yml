@@ -1,0 +1,31 @@
+# Engine + a local Ollama model server. Written for local use; not run as part of CI.
+# Start: docker compose up --build   then   docker compose exec ollama ollama pull codellama
+services:
+  engine:
+    build: ./engine
+    environment:
+      METAMORPH_PROVIDER: ollama
+      METAMORPH_OLLAMA_URL: http://ollama:11434
+      METAMORPH_OLLAMA_MODEL: ${METAMORPH_OLLAMA_MODEL:-codellama}
+      METAMORPH_CORS_ORIGINS: http://localhost:5173
+    ports:
+      - "127.0.0.1:8000:8000" # localhost only: the service runs the code it is sent
+    depends_on:
+      - ollama
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+  ollama:
+    image: ollama/ollama:latest
+    volumes:
+      - ollama-models:/root/.ollama
+    ports:
+      - "127.0.0.1:11434:11434"
+
+volumes:
+  ollama-models:
