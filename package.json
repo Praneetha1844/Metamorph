@@ -1,8 +1,8 @@
 {
   "name": "metamorph",
   "private": true,
-  "version": "0.1.0",
-  "description": "Browser code editor with sandboxed JavaScript execution and LLM-assisted refactor suggestions.",
+  "version": "0.2.0",
+  "description": "Code workbench that accepts LLM refactors only when the original tests still pass.",
   "license": "MIT",
   "engines": { "node": ">=20" },
   "type": "module",
