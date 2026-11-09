@@ -127,8 +127,9 @@ def test_my_function():
               className="mt-3 rounded bg-purple-600 px-6 py-2 font-semibold hover:bg-purple-800 disabled:opacity-50"
               onClick={verify}
               disabled={busy || !canVerify}
+              aria-busy={busy}
             >
-              Verify refactor
+              {busy ? "Working..." : "Verify refactor"}
             </button>
             {engineError && <p role="alert" className="mt-3 text-red-400">{engineError}</p>}
           </section>

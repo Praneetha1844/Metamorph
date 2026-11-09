@@ -4,6 +4,8 @@
   "version": "0.2.0",
   "description": "Code workbench that accepts LLM refactors only when the original tests still pass.",
   "license": "MIT",
+  "author": "Praneetha Potharaju",
+  "repository": { "type": "git", "url": "git+https://github.com/Praneetha1844/Metamorph.git" },
   "engines": { "node": ">=20" },
   "type": "module",
   "scripts": {

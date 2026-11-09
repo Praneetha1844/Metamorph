@@ -25,6 +25,11 @@ dev = [
     "mypy>=1.11",
 ]
 
+[project.urls]
+Homepage = "https://github.com/Praneetha1844/Metamorph"
+Source = "https://github.com/Praneetha1844/Metamorph"
+Issues = "https://github.com/Praneetha1844/Metamorph/issues"
+
 [project.scripts]
 metamorph-eval = "metamorph_engine.evaluation:main"
 
