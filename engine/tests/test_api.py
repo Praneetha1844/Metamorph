@@ -66,3 +66,32 @@ def test_sandbox_failure_is_503() -> None:
     client = TestClient(create_app(Settings(), FakeProvider([]), Broken()))
     response = client.post("/refactor", json={"source": SOURCE, "tests": TESTS})
     assert response.status_code == 503
+
+
+def test_excess_concurrent_runs_get_429() -> None:
+    import threading
+
+    entered, release = threading.Event(), threading.Event()
+
+    class Blocking:
+        name = "blocking"
+
+        def run_tests(self, source: str, tests: str, module_name: str) -> SuiteResult:
+            entered.set()
+            release.wait(timeout=10)
+            return SuiteResult(passed=False, exit_code=1)
+
+    client = TestClient(
+        create_app(Settings(max_concurrent_runs=1), FakeProvider([]), Blocking())
+    )
+    body = {"source": SOURCE, "tests": TESTS}
+    first = threading.Thread(target=lambda: client.post("/refactor", json=body))
+    first.start()
+    try:
+        assert entered.wait(timeout=10)
+        assert client.post("/refactor", json=body).status_code == 429
+    finally:
+        release.set()
+        first.join(timeout=10)
+    # the slot is released afterwards, so a later run is accepted (and fails its baseline)
+    assert client.post("/refactor", json=body).json()["verdict"] == "baseline_failed"

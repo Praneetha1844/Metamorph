@@ -20,7 +20,7 @@ from .config import Settings
 from .models import RefactorRequest
 from .pipeline import run_refactor
 from .providers import LLMProvider, build_provider
-from .sandbox import Sandbox, build_sandbox
+from .sandbox import Sandbox, SandboxError, build_sandbox
 
 FIELDS = (
     "case",
@@ -122,12 +122,16 @@ def main(argv: list[str] | None = None) -> int:
     except FileNotFoundError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
-    rows = evaluate(
-        cases,
-        build_provider(settings),
-        build_sandbox(settings),
-        max_attempts=args.max_attempts or settings.max_attempts,
-    )
+    try:
+        rows = evaluate(
+            cases,
+            build_provider(settings),
+            build_sandbox(settings),
+            max_attempts=args.max_attempts or settings.max_attempts,
+        )
+    except SandboxError as exc:  # a broken sandbox would fail every case, so stop early
+        print(f"error: sandbox unavailable: {exc}", file=sys.stderr)
+        return 1
     write_csv(rows, args.out)
     print(f"wrote {len(rows)} row(s) to {args.out}")
     return 0

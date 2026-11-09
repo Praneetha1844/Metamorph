@@ -52,3 +52,22 @@ def test_rows_and_csv_for_one_case(tmp_path: Path) -> None:
         read = list(csv.DictReader(handle))
     assert list(read[0].keys()) == list(FIELDS)
     assert read[0]["case"] == "legacy_wordcount"
+
+
+def test_main_stops_with_exit_code_1_when_the_sandbox_is_unavailable(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], tmp_path: Path
+) -> None:
+    from metamorph_engine import evaluation
+    from metamorph_engine.sandbox import SandboxError
+
+    class Broken:
+        name = "broken"
+
+        def run_tests(self, source: str, tests: str, module_name: str) -> object:
+            raise SandboxError("no docker")
+
+    monkeypatch.setattr(evaluation, "build_sandbox", lambda settings: Broken())
+    monkeypatch.setattr(evaluation, "build_provider", lambda settings: FakeProvider([]))
+    code = evaluation.main(["--cases", str(CASES), "--out", str(tmp_path / "out.csv")])
+    assert code == 1
+    assert "sandbox unavailable" in capsys.readouterr().err

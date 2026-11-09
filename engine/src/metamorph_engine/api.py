@@ -1,6 +1,6 @@
 """REST API.
 
-    POST /refactor            run the loop, return the report
+    POST /refactor            run the loop, return the report (429 when too many runs are active)
     GET  /runs/{id}           fetch a stored report (JSON)
     GET  /runs/{id}/report.md fetch it as Markdown
     GET  /health              liveness and configuration summary
@@ -10,6 +10,8 @@ the Docker sandbox, and never expose it to untrusted users.
 """
 
 from __future__ import annotations
+
+from threading import BoundedSemaphore
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -35,6 +37,9 @@ def create_app(
     llm = provider or build_provider(cfg)
     box = sandbox or build_sandbox(cfg)
     store = RunStore()
+    # Each run starts a test process and a model call; bound them so a burst of requests
+    # cannot exhaust the host. Excess requests get HTTP 429 and can be retried.
+    slots = BoundedSemaphore(cfg.max_concurrent_runs)
 
     app = FastAPI(title="Metamorph engine", version=__version__)
     app.add_middleware(
@@ -57,10 +62,14 @@ def create_app(
     # model call and test run do not stall the event loop.
     @app.post("/refactor", response_model=RunReport)
     def refactor(request: RefactorRequest) -> RunReport:
+        if not slots.acquire(blocking=False):
+            raise HTTPException(status_code=429, detail="too many runs in progress, retry shortly")
         try:
             report = run_refactor(request, llm, box, max_attempts=cfg.max_attempts)
         except SandboxError as exc:
             raise HTTPException(status_code=503, detail=f"sandbox unavailable: {exc}") from exc
+        finally:
+            slots.release()
         store.add(report)
         return report
 

@@ -12,13 +12,15 @@ def test_defaults_when_env_is_empty() -> None:
     settings = Settings.from_env({})
     assert settings.provider == "ollama"
     assert settings.max_attempts == 3
-    assert settings.cors_origins == ("http://localhost:5173",)
+    assert settings.max_concurrent_runs == 2
+    assert settings.cors_origins == ("http://localhost:5173", "http://127.0.0.1:5173")
 
 
 def test_env_overrides_and_trailing_slash_is_stripped() -> None:
     settings = Settings.from_env(
         {
             "METAMORPH_PROVIDER": "OpenAI",
+            "METAMORPH_OPENAI_MODEL": "some-model",
             "METAMORPH_OPENAI_BASE_URL": "http://h/v1/",
             "METAMORPH_MAX_ATTEMPTS": "5",
             "METAMORPH_CORS_ORIGINS": "http://a, http://b",
@@ -38,6 +40,8 @@ def test_env_overrides_and_trailing_slash_is_stripped() -> None:
         {"METAMORPH_MAX_ATTEMPTS": "zero"},
         {"METAMORPH_MAX_ATTEMPTS": "0"},
         {"METAMORPH_MEMORY_MB": "8"},
+        {"METAMORPH_MAX_CONCURRENT_RUNS": "0"},
+        {"METAMORPH_PROVIDER": "openai"},  # the model name is required
     ],
 )
 def test_bad_values_raise_config_error(env: dict[str, str]) -> None:
@@ -63,3 +67,9 @@ def test_build_prompt_includes_feedback_only_on_retry() -> None:
     retry = build_prompt("a = 1\n", previous_candidate="a = 2\n", failure_output="boom")
     assert "failed the original tests" in retry
     assert "boom" in retry
+
+
+def test_extract_code_skips_empty_fenced_blocks() -> None:
+    reply = "```python\n\n```\ntext\n```python\nx = 1\n```"
+    assert extract_code(reply) == "x = 1\n"
+    assert extract_code("```python\n```") is None

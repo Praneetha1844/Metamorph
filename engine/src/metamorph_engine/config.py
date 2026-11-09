@@ -39,7 +39,10 @@ class Settings:
     memory_mb: int = 512
     sandbox: str = "subprocess"
     docker_image: str = "metamorph-sandbox:latest"
-    cors_origins: tuple[str, ...] = field(default_factory=lambda: ("http://localhost:5173",))
+    max_concurrent_runs: int = 2
+    cors_origins: tuple[str, ...] = field(
+        default_factory=lambda: ("http://localhost:5173", "http://127.0.0.1:5173")
+    )
 
     @classmethod
     def from_env(cls, env: Mapping[str, str] | None = None) -> Settings:
@@ -53,6 +56,9 @@ class Settings:
             raise ConfigError(
                 f"METAMORPH_SANDBOX must be 'subprocess' or 'docker', got {sandbox!r}"
             )
+        openai_model = e.get("METAMORPH_OPENAI_MODEL", "")
+        if provider == "openai" and not openai_model:
+            raise ConfigError("METAMORPH_OPENAI_MODEL is required when METAMORPH_PROVIDER=openai")
         origins = tuple(
             o.strip() for o in e.get("METAMORPH_CORS_ORIGINS", "").split(",") if o.strip()
         ) or cls().cors_origins
@@ -62,11 +68,12 @@ class Settings:
             ollama_model=e.get("METAMORPH_OLLAMA_MODEL", cls.ollama_model),
             openai_base_url=e.get("METAMORPH_OPENAI_BASE_URL", cls.openai_base_url).rstrip("/"),
             openai_api_key=e.get("METAMORPH_OPENAI_API_KEY", ""),
-            openai_model=e.get("METAMORPH_OPENAI_MODEL", ""),
+            openai_model=openai_model,
             max_attempts=_int(e, "METAMORPH_MAX_ATTEMPTS", cls.max_attempts),
             test_timeout_s=_int(e, "METAMORPH_TEST_TIMEOUT_S", cls.test_timeout_s),
             memory_mb=_int(e, "METAMORPH_MEMORY_MB", cls.memory_mb, minimum=64),
             sandbox=sandbox,
             docker_image=e.get("METAMORPH_DOCKER_IMAGE", cls.docker_image),
+            max_concurrent_runs=_int(e, "METAMORPH_MAX_CONCURRENT_RUNS", cls.max_concurrent_runs),
             cors_origins=origins,
         )
