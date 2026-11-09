@@ -1,7 +1,10 @@
 {
-  "name": "my-app",
+  "name": "metamorph",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
+  "description": "Browser code editor with sandboxed JavaScript execution and LLM-assisted refactor suggestions.",
+  "license": "MIT",
+  "engines": { "node": ">=20" },
   "type": "module",
   "scripts": {
     "dev": "vite",
