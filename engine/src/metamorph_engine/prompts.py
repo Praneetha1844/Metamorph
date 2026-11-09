@@ -37,11 +37,12 @@ def build_prompt(
 def extract_code(reply: str) -> str | None:
     """Return the first fenced code block, or the whole reply if it is itself valid Python.
 
-    Returns None when neither applies, so the caller can record a failed attempt.
+    Empty fenced blocks are skipped. Returns None when neither applies, so the caller can record
+    a failed attempt.
     """
-    match = _FENCE.search(reply)
-    if match:
-        return match.group(1).strip("\n") + "\n"
+    for match in _FENCE.finditer(reply):
+        if match.group(1).strip():
+            return match.group(1).strip("\n") + "\n"
     stripped = reply.strip()
     if not stripped:
         return None

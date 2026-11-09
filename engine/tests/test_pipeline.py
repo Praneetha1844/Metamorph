@@ -156,6 +156,7 @@ def test_report_round_trips_through_json(sandbox: SubprocessSandbox) -> None:
         {"tests": ""},
         {"module_name": "os"},
         {"module_name": "test_solution"},
+        {"module_name": "pluggy"},
         {"module_name": "not an identifier"},
         {"max_attempts": 0},
     ],

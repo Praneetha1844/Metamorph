@@ -12,7 +12,10 @@ from uuid import uuid4
 from pydantic import BaseModel, Field, field_validator
 
 MAX_CODE_CHARS = 100_000
-RESERVED_MODULE_NAMES = frozenset({"test_suite", "conftest", "pytest"})
+# Names that would shadow pytest or its dependencies when the module sits next to the tests.
+RESERVED_MODULE_NAMES = frozenset(
+    {"test_suite", "conftest", "pytest", "_pytest", "pluggy", "iniconfig", "packaging", "py"}
+)
 
 LIMITATION_NOTE = (
     "Accepted means the supplied tests still pass. Passing tests do not prove the refactor "
