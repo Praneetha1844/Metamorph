@@ -45,7 +45,13 @@ def to_markdown(report: RunReport) -> str:
         lines.append("No attempts were made.")
 
     if report.before and report.after and report.deltas is not None:
-        lines += ["", "## Static metrics", "", "| Metric | Before | After | Change |", "|---|---|---|---|"]
+        lines += [
+            "",
+            "## Static metrics",
+            "",
+            "| Metric | Before | After | Change |",
+            "|---|---|---|---|",
+        ]
         for name in DELTA_FIELDS:
             lines.append(
                 f"| {_LABELS[name]} | {getattr(report.before, name)} | "

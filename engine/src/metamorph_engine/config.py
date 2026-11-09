@@ -50,7 +50,9 @@ class Settings:
             raise ConfigError(f"METAMORPH_PROVIDER must be 'ollama' or 'openai', got {provider!r}")
         sandbox = e.get("METAMORPH_SANDBOX", cls.sandbox).lower()
         if sandbox not in {"subprocess", "docker"}:
-            raise ConfigError(f"METAMORPH_SANDBOX must be 'subprocess' or 'docker', got {sandbox!r}")
+            raise ConfigError(
+                f"METAMORPH_SANDBOX must be 'subprocess' or 'docker', got {sandbox!r}"
+            )
         origins = tuple(
             o.strip() for o in e.get("METAMORPH_CORS_ORIGINS", "").split(",") if o.strip()
         ) or cls().cors_origins

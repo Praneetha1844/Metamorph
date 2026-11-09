@@ -79,7 +79,9 @@ class DockerSandbox:
                     duration_s=time.monotonic() - started,
                 )
             if completed.returncode == 125:  # docker itself failed (bad image, daemon down)
-                raise SandboxError(f"docker could not start the container: {completed.stderr.strip()}")
+                raise SandboxError(
+                    f"docker could not start the container: {completed.stderr.strip()}"
+                )
             return build_result(
                 exit_code=completed.returncode,
                 output=completed.stdout + completed.stderr,
